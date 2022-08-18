@@ -13,6 +13,7 @@ const Textarea: FC<TextareaProps> = ({ value, onChange, disabled }) => {
 };
 
 export default Textarea;
+
 const TextareaStyled = styled.textarea`
   width: 100%;
   height: 500px;

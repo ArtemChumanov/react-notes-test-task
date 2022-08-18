@@ -1,31 +1,40 @@
-import React, { FC, useState } from "react";
+import React, { FC, useMemo, useState } from "react";
 import Header from "./Header/Header";
 import Notes from "./Notes/Notes";
 import NoteFields from "./NotesField/NoteFields";
 import styled from "styled-components";
 import { useAppDispatch, useAppSelector } from "../../../hooks/reduxHooks";
-import { setSelectNoteIndex } from "../../../redux/notes/noteSlice";
+import { setSelectNoteId } from "../../../redux/notes/noteSlice";
+import { findIndexById } from "../../../utils/helpers";
+import { INote } from "../../../types/types";
+
 interface NotesCreatorProps {
-  setOpenModal: any;
+  setOpenModal: () => void;
 }
 const NotesCreator: FC<NotesCreatorProps> = ({ setOpenModal }) => {
-  const { folders, currentFolderIndex } = useAppSelector(
-    (state) => state.notes
-  );
   const dispatch = useAppDispatch();
-  const [currentNote, setCurrentNote] = useState({
+  const { folders, currentIdFolder } = useAppSelector((state) => state.notes);
+
+  const currentFolderIndex: number = useMemo(
+    () => findIndexById(folders, currentIdFolder),
+    [currentIdFolder]
+  );
+
+  const [currentNote, setCurrentNote] = useState<INote>({
     title: "",
     text: "",
-    time: null,
+    time: "",
     lock: false,
+    id: 0,
   });
-  const selectCurrentNoteHandle = (item: any) => {
-    //dispatch(setSelectNoteIndex())
+  const selectCurrentNoteHandle = (item: INote) => {
+    dispatch(setSelectNoteId(item.id));
     setCurrentNote({
       title: item.title,
       text: item.text,
       lock: item.lock,
-      time: null,
+      time: "",
+      id: item.id,
     });
   };
 
@@ -34,10 +43,9 @@ const NotesCreator: FC<NotesCreatorProps> = ({ setOpenModal }) => {
       <Header setOpenModal={setOpenModal} />
       <ContentWrapper>
         <Notes
-          notes={folders[currentFolderIndex].notesList}
+          notes={folders[currentFolderIndex]?.notesList || []}
           onSelectNote={selectCurrentNoteHandle}
         />
-
         <NoteFields currentNote={currentNote} setCurrentNote={setCurrentNote} />
       </ContentWrapper>
     </NotesWrapper>

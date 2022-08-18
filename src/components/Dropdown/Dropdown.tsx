@@ -3,16 +3,17 @@ import styled from "styled-components";
 import { useOnClickOutside } from "../../hooks/useOnClickOutside";
 import { useAppDispatch } from "../../hooks/reduxHooks";
 import { notesAction } from "../../redux/notes/noteSlice";
+import { IEditItem } from "../../types/types";
 interface DropdownProps {
-  onClickOutSide: any;
-  items: any[];
+  onClickOutSide: any; //???
+  items: IEditItem[];
 }
 const Dropdown: FC<DropdownProps> = ({ onClickOutSide, items }) => {
   const dropdownRef = useRef(null);
   const dispatch = useAppDispatch();
   useOnClickOutside(dropdownRef, onClickOutSide, null);
-  const changeActionHandle = (action: string) => {
-    dispatch(notesAction(action));
+  const changeActionHandle = (action?: string) => {
+    action && dispatch(notesAction(action));
   };
   return (
     <DropdownWrapper ref={dropdownRef}>

@@ -1,6 +1,8 @@
 import React from "react";
 import { FormikProps } from "formik";
 import styled from "styled-components";
+import { iterate } from "../../../utils/helpers";
+import Image from "../Image/Image";
 
 interface InputProps<T> {
   name: string;
@@ -9,6 +11,10 @@ interface InputProps<T> {
   value?: string;
   formik?: FormikProps<T>;
   onChange?: (arg: any) => void;
+  styles?: {
+    margin?: number[];
+    padding?: number[];
+  };
 }
 
 const Input = <T extends Record<string, unknown>>({
@@ -18,21 +24,44 @@ const Input = <T extends Record<string, unknown>>({
   formik,
   value,
   onChange,
+  styles,
 }: InputProps<T>) => {
   return (
-    <InputStyle
-      type={type}
-      name={name}
-      value={(formik?.values[name] as string) || value}
-      onChange={formik?.handleChange || onChange}
-    />
+    <InputGroup>
+      <LabelGroup>
+        {/*<Image/>*/}
+        <label>{label}</label>
+      </LabelGroup>
+      <InputStyle
+        type={type}
+        name={name}
+        styles={styles}
+        value={(formik?.values[name] as string) || value}
+        onChange={formik?.handleChange || onChange}
+      />
+    </InputGroup>
   );
 };
 
 export default Input;
-export const InputStyle = styled.input`
+
+type InputStyledProps = Pick<InputProps<unknown>, "styles">;
+export const InputGroup = styled.div``;
+export const LabelGroup = styled.div`
+  display: flex;
+  label {
+    font-weight: 500;
+    font-size: 10px;
+    line-height: 12px;
+  }
+`;
+
+export const InputStyle = styled.input<InputStyledProps>`
   width: 192px;
   height: 32px;
+  padding: ${({ styles }) =>
+    styles?.padding ? iterate(styles?.padding) : "0"};
+  margin: ${({ styles }) => (styles?.margin ? iterate(styles?.margin) : "0")};
   background: #1a1b1e;
   border: 1px solid #dfa549;
   border-radius: 53px;
@@ -41,5 +70,4 @@ export const InputStyle = styled.input`
   line-height: 15px;
   color: #ffffff;
   outline: none;
-  padding: 0 15px;
 `;

@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import Image from "../Image/Image";
 import styled from "styled-components";
+import { iterate } from "../../../utils/helpers";
 
 interface ButtonProps {
   type?: "button" | "submit" | "reset";
@@ -45,11 +46,6 @@ const Button: FC<ButtonProps> = ({
 
 export default Button;
 type ButtonPropsStyle = Pick<ButtonProps, "imageButton" | "styles">;
-const iterate = (v: any[]) => {
-  const stylesRes: string[] = [];
-  v.forEach((i) => stylesRes.push(i === "auto" ? `${i}` : `${i}px`));
-  return stylesRes.join(" ");
-};
 
 export const ButtonStyle = styled.button<ButtonPropsStyle>`
   background: ${({ styles }) =>

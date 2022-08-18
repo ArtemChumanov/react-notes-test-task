@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import Input from "../../components/shared/Input/Input";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -38,15 +38,13 @@ const SignIn = () => {
   useEffect(() => {
     isAuth && navigate("/");
   }, [isAuth]);
-  const loginHandle = ({ email, password }: any) => {
+
+  const loginHandle = ({ email, password }: FormLogin) =>
     dispatch(loginUser({ email, password }));
-    // });
-  };
+
   const formikLogin = useFormik({
     initialValues: { ...initialValuesLogin },
     onSubmit: (values, helpers) => {
-      console.log(values);
-      // @ts-ignore
       loginHandle(values);
     },
     validationSchema: FormSchemaLogin,

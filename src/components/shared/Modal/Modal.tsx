@@ -5,8 +5,6 @@ import Image from "../Image/Image";
 // @ts-ignore
 import Trash from "../../../assets/icons/trash.svg";
 import Button from "../Button/Button";
-import { useOnClickOutside } from "../../../hooks/useOnClickOutside";
-import { useAppSelector } from "../../../hooks/reduxHooks";
 
 interface ModalProps {
   openModal: boolean;

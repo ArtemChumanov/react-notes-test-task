@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 // @ts-ignore
 import LogoImage from "../../../assets/icons/BT_Logo.svg";
 // @ts-ignore
@@ -8,21 +8,40 @@ import Image from "../../../components/shared/Image/Image";
 import AddFolderImage from "../../../assets/icons/folder-add.svg";
 import styled from "styled-components";
 import { useAppDispatch, useAppSelector } from "../../../hooks/reduxHooks";
-import {
-  setCurrentIdFolder,
-  setSelectCurrentFolder,
-  setSelectFolderIndex,
-} from "../../../redux/notes/noteSlice";
+import { setCurrentIdFolder } from "../../../redux/notes/noteSlice";
+import Button from "../../../components/shared/Button/Button";
+import { addFolder } from "../../../redux/notes/notesThunk";
+import { findIndexById } from "../../../utils/helpers";
 
 const Sidebar = () => {
   const dispatch = useAppDispatch();
-  const { folders } = useAppSelector((state) => state.notes);
-  const [activeFolder, setActiveFolder] = useState<number | null>(null);
+  const { folders, currentIdFolder } = useAppSelector((state) => state.notes);
+  const [creatingFolder, setCreatingFolder] = useState(false);
+  const [folderNameValue, setFolderNameValue] = useState("");
+  const [activeFolder, setActiveFolder] = useState<number | null>(
+    findIndexById(folders, currentIdFolder)
+  );
   const selectFolderHandle = (index: number, item: any) => {
-    dispatch(setSelectCurrentFolder(item));
-    dispatch(setSelectFolderIndex(index));
     dispatch(setCurrentIdFolder(item.id));
     setActiveFolder(index);
+  };
+
+  const toggleCreatingHandle = () => setCreatingFolder(true);
+
+  const changeInputHandle = ({ target }: ChangeEvent<HTMLInputElement>) =>
+    setFolderNameValue(target.value);
+
+  const addFolderHandle = () => {
+    dispatch(
+      addFolder({
+        title: folderNameValue,
+        lock: false,
+        notesList: [],
+        id: folders.length + 1,
+      })
+    );
+    setFolderNameValue("");
+    setCreatingFolder(false);
   };
   return (
     <FoldersWrapper>
@@ -38,14 +57,21 @@ const Sidebar = () => {
               <FolderImage src={Folder} />
               <Label>{folder.title}</Label>
             </div>
-            <CountsNotes>{folder.notesList.length}</CountsNotes>
+            <CountsNotes>{folder.notesList?.length}</CountsNotes>
           </FolderStyle>
         ))}
       </FolderList>
-      <CreateFolder>
-        <Image src={AddFolderImage} imageSize={[20, 18]} />
-        <NewFolderTitle>New Folder</NewFolderTitle>
-      </CreateFolder>
+      {creatingFolder ? (
+        <div>
+          <input value={folderNameValue} onChange={changeInputHandle} />
+          <Button imageButton={false} label={"ok"} onClick={addFolderHandle} />
+        </div>
+      ) : (
+        <CreateFolder onClick={toggleCreatingHandle}>
+          <Image src={AddFolderImage} imageSize={[20, 18]} />
+          <NewFolderTitle>New Folder</NewFolderTitle>
+        </CreateFolder>
+      )}
     </FoldersWrapper>
   );
 };

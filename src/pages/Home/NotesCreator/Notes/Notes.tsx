@@ -1,10 +1,10 @@
 import React, { FC } from "react";
 import styled from "styled-components";
-// @ts-ignore
-import Lock from "../../../assets/icons/lock-color.svg";
 import NoteItem from "./NotesItem/NoteItem";
+import { INote } from "../../../../types/types";
+
 interface NotesProps {
-  notes: any[];
+  notes: INote[];
   onSelectNote: (arg: any) => void;
 }
 const Notes: FC<NotesProps> = ({ notes, onSelectNote }) => {

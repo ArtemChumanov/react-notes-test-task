@@ -8,33 +8,34 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../../../../../hooks/reduxHooks";
-import {
-  setSelectFolderIndex,
-  setSelectNoteIndex,
-} from "../../../../../redux/notes/noteSlice";
 import moment from "moment";
+import { setSelectNoteId } from "../../../../../redux/notes/noteSlice";
 interface NoteItemProps {
   key: number;
   note: any;
   onSelectNote: any;
 }
 const NoteItem: FC<NoteItemProps> = ({ key, note, onSelectNote }) => {
-  const { folders, currentFolderIndex, currentNoteIndex } = useAppSelector(
+  const dispatch = useAppDispatch();
+  const { folders, currentIdFolder, currentIdNote } = useAppSelector(
     (state) => state.notes
   );
-  const indexNote = folders[currentFolderIndex].notesList.findIndex(
-    (elem) => elem.id === note.id
-  );
+  // const currentFolderIndex = useMemo(
+  //   () => findIndexById(folders, currentIdFolder),
+  //   [currentIdFolder]
+  // );
+  // const indexNote = folders[currentFolderIndex].notesList.findIndex(
+  //   (elem) => elem.id === note.id
+  // );
 
-  const dispatch = useAppDispatch();
   const onClickNoteHandle = () => {
-    dispatch(setSelectNoteIndex(indexNote));
+    dispatch(setSelectNoteId(note.id));
     onSelectNote(note);
   };
-  const activeNote = currentNoteIndex === indexNote;
+  const activeNote = currentIdNote === note.id;
 
   return (
-    <NotesItemStyle active={activeNote} onClick={onClickNoteHandle}>
+    <NotesItemStyle active={true} onClick={onClickNoteHandle}>
       <ImageContainer>
         {note.lock && <Image src={Lock} imageSize={[9, 11]} />}
       </ImageContainer>

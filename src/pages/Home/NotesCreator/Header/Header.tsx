@@ -22,13 +22,14 @@ import Delete from "../../../../assets/icons/delete.svg";
 import Input from "../../../../components/shared/Input/Input";
 import Dropdown from "../../../../components/Dropdown/Dropdown";
 import { useOnClickOutside } from "../../../../hooks/useOnClickOutside";
+import { IEditItem } from "../../../../types/types";
 
-const editItem = [
+const editItem: IEditItem[] = [
   { name: "Edit note", action: "edit" },
   { name: "Create note", action: "create" },
 ];
 interface HeaderProps {
-  setOpenModal: any;
+  setOpenModal: () => void;
 }
 const Header: FC<HeaderProps> = ({ setOpenModal }) => {
   const dropdownRef = useRef(null);
@@ -52,7 +53,6 @@ const Header: FC<HeaderProps> = ({ setOpenModal }) => {
   const onClickLockHandle = () => setActiveLockButton(!activeLockButton);
   const onClickEditableHandle = () => setActiveEditButton(!activeEditButton);
 
-  //useOnClickOutside(dropdownRef, () => setActiveLockButton(false), dropdownRef);
   return (
     <HeaderWrapper>
       <LeftPartStyle>

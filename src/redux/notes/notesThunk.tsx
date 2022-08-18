@@ -1,15 +1,16 @@
-import { createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../../config/firebase";
+import { createAsyncThunk } from "@reduxjs/toolkit";
+import { db } from "../../config/firebase";
 import {
+  addDoc,
   collection,
+  deleteDoc,
   doc,
   getDocs,
   query,
-  setDoc,
   updateDoc,
   where,
 } from "@firebase/firestore";
+import { IFolder, INote } from "../../types/types";
 
 export const getNotesByUserId = createAsyncThunk(
   "notes/getAllNotes",
@@ -19,47 +20,44 @@ export const getNotesByUserId = createAsyncThunk(
     );
     const doc = await getDocs(q);
     const data = doc.docs.map((i) => ({
-      id: i.id,
       ...i.data(),
+      id: i.id,
     }));
     return data;
-    //console.log(data);
-    // const res = await signInWithEmailAndPassword(auth, email, password);
-    // const user = res.user;
-    // console.log("USER", user);
-    // return user;
   }
 );
+export const addFolder = createAsyncThunk(
+  "notes/addFolder",
+  async (payload: {
+    title: string;
+    lock: false;
+    notesList: INote[];
+    id: number;
+  }) => {
+    await addDoc(collection(db, "folders"), {
+      ...payload,
+    });
+    return { ...payload };
+  }
+);
+
 export const updateFolder = createAsyncThunk(
   "notes/updateFolder",
-  async (payload: { folderId: string; currentFolder: any }) => {
-    const { folderId, currentFolder } = payload;
-    console.log(folderId, currentFolder);
-    debugger;
-
+  async (payload: {
+    folderId: string;
+    currentFolder: any;
+    folders: IFolder[];
+  }) => {
+    const { folderId, currentFolder, folders } = payload;
     const docRef = doc(db, "folders", folderId);
-    console.log(docRef);
-    const res = await setDoc(docRef, currentFolder);
-    console.log(res);
-    //     const res = await collection(db,"folders")
-    //         .doc("frank").update({
-    //         "favorites.firebase": "Help")}
-    // })
-    // const foldersRef = doc(db, "folders", folderId);
-    // await updateDoc(foldersRef, currentFolder);
-
-    // const q = query(
-    //     collection(db, "folders") /*, where("userId", "==", payload)*/
-    // );
-    // const doc = await getDocs(q);
-    // const data = doc.docs.map((i) => ({
-    //   ...i.data(),
-    // }));
-    // return data;
-    //console.log(data);
-    // const res = await signInWithEmailAndPassword(auth, email, password);
-    // const user = res.user;
-    // console.log("USER", user);
-    // return user;
+    await updateDoc(docRef, currentFolder);
+    return folders;
+  }
+);
+export const deleteFolder = createAsyncThunk(
+  "notes/deleteFolder",
+  async (payload: string) => {
+    const docRef = doc(db, "folders", payload);
+    await deleteDoc(docRef);
   }
 );

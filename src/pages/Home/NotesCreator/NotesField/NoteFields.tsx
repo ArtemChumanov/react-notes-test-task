@@ -1,64 +1,61 @@
-import React, { ChangeEvent, FC, useState } from "react";
+import React, { ChangeEvent, FC } from "react";
 import styled from "styled-components";
 import Textarea from "../../../../components/shared/Textarea/Textarea";
 import { useAppDispatch, useAppSelector } from "../../../../hooks/reduxHooks";
-import { bool } from "yup";
 import Button from "../../../../components/shared/Button/Button";
-import {
-  setCreateNotes,
-  setEditNotes,
-  toggleNoteCreating,
-} from "../../../../redux/notes/noteSlice";
+import { toggleNoteCreating } from "../../../../redux/notes/noteSlice";
 import moment from "moment";
+import { updateFolder } from "../../../../redux/notes/notesThunk";
+import { mutableArray } from "../../../../utils/helpers";
+import { IFolder, INote } from "../../../../types/types";
 
 interface NoteFieldsProps {
-  currentNote: any;
+  currentNote: INote;
   setCurrentNote: (arg: any) => void;
 }
 const NoteFields: FC<NoteFieldsProps> = ({ currentNote, setCurrentNote }) => {
   const {
     statusNotesCreating,
     statusNotesEditing,
-    currentFolderIndex,
-    currentNoteIndex,
+    currentIdFolder,
+    currentIdNote,
+    folders,
   } = useAppSelector((state) => state.notes);
 
   const dispatch = useAppDispatch();
+
   const saveNotesHandle = () => {
-    setCurrentNote((props: any) => ({
-      ...props,
-      time: moment(),
-    }));
-    if (statusNotesEditing) {
-      dispatch(toggleNoteCreating());
-      dispatch(
-        setEditNotes({
-          ...currentNote,
-          idFolder: currentFolderIndex,
-          idNotes: currentNoteIndex,
-          time: moment(),
-        })
-      );
-    }
-    if (statusNotesCreating) {
-      dispatch(toggleNoteCreating());
-      dispatch(
-        setCreateNotes({
-          ...currentNote,
-          idFolder: currentFolderIndex,
-          idNotes: currentNoteIndex,
-          time: moment(),
-        })
-      );
-    }
+    const notesInfo = {
+      ...currentNote,
+      id: currentNote.id === null ? 0 : currentNote.id + 1,
+      time: "12:56",
+    };
+    const action: string = statusNotesEditing ? "edit" : "create";
+    const mutableArrOfFolders = mutableArray(
+      folders,
+      notesInfo,
+      currentIdFolder,
+      currentIdNote,
+      action
+    );
+    setCurrentNote(notesInfo);
+    dispatch(
+      updateFolder({
+        folderId: currentIdFolder,
+        currentFolder: mutableArrOfFolders.updatedItem as IFolder,
+        folders: mutableArrOfFolders.updatedArray as IFolder[],
+      })
+    );
+
+    dispatch(toggleNoteCreating());
   };
   const onChangeName = ({ target }: ChangeEvent<HTMLInputElement>) =>
-    setCurrentNote((props: any) => ({
+    setCurrentNote((props: INote) => ({
       ...props,
       title: target.value,
     }));
   const onChangeText = ({ target }: ChangeEvent<HTMLInputElement>) =>
-    setCurrentNote((props: any) => ({
+    setCurrentNote((props: INote) => ({
       ...props,
       text: target.value,
     }));
