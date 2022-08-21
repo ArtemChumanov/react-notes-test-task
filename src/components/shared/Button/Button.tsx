@@ -6,16 +6,19 @@ import { iterate } from "../../../utils/helpers";
 interface ButtonProps {
   type?: "button" | "submit" | "reset";
   label?: string;
-  onClick?: (arg: any) => void;
+  onClick?: (arg?: any) => void;
   imageButton: boolean;
   imageSrc?: any;
   imageSize?: number[];
+  disabled?: boolean;
   styles?: {
     margin?: number[] | any[];
     padding?: number[];
     background?: string;
     width?: number;
     height?: number;
+    borderRadius?: number;
+    color?: string;
   };
 }
 
@@ -27,6 +30,7 @@ const Button: FC<ButtonProps> = ({
   imageSrc,
   imageSize,
   styles,
+  disabled = false,
 }) => {
   return (
     <ButtonStyle
@@ -34,6 +38,7 @@ const Button: FC<ButtonProps> = ({
       onClick={onClick}
       imageButton={imageButton}
       styles={styles}
+      disabled={disabled}
     >
       {!imageButton ? (
         label
@@ -45,7 +50,10 @@ const Button: FC<ButtonProps> = ({
 };
 
 export default Button;
-type ButtonPropsStyle = Pick<ButtonProps, "imageButton" | "styles">;
+type ButtonPropsStyle = Pick<
+  ButtonProps,
+  "imageButton" | "styles" | "disabled"
+>;
 
 export const ButtonStyle = styled.button<ButtonPropsStyle>`
   background: ${({ styles }) =>
@@ -54,15 +62,15 @@ export const ButtonStyle = styled.button<ButtonPropsStyle>`
     styles?.padding ? iterate(styles?.padding) : "0"};
   margin: ${({ styles }) => (styles?.margin ? iterate(styles?.margin) : "0")};
   width: ${({ styles }) => (styles?.width ? `${styles?.width}px` : "auto")};
+  color: ${({ styles }) => `${styles?.color ?? "black"}`};
   border: none;
   outline: none;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: ${({ styles }) => `${styles?.borderRadius ?? 4}px`};
 
   &:hover {
-    background: ${({ imageButton }) => imageButton && "rgba(0, 0, 0, 0.2)"};
+    background: ${({ imageButton, disabled }) =>
+      !disabled && imageButton && "rgba(0, 0, 0, 0.2)"};
     opacity: ${({ imageButton }) => (!imageButton ? 0.8 : 1)};
   }
-  //display: flex;
-  //align-items: center;
 `;

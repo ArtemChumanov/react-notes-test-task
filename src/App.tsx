@@ -1,11 +1,14 @@
 import React from "react";
 import Routers from "./routes/Routes";
-import Modal from "./components/shared/Modal/Modal";
+import { ThemeProvider } from "styled-components";
+import { AppTheme } from "./styles/theme";
 
 function App() {
   return (
     <div className="App">
-      <Routers />
+      <ThemeProvider theme={AppTheme}>
+        <Routers />
+      </ThemeProvider>
     </div>
   );
 }

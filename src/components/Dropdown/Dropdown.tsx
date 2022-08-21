@@ -1,56 +1,67 @@
 import React, { FC, useRef } from "react";
-import styled from "styled-components";
 import { useOnClickOutside } from "../../hooks/useOnClickOutside";
-import { useAppDispatch } from "../../hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import { notesAction } from "../../redux/notes/noteSlice";
-import { IEditItem } from "../../types/types";
+import { IEditItem, INote } from "../../types/types";
+import { ViewType } from "../../utils/constants";
+import { DropdownWrapper, Item, SearchItem } from "./Dropdown.styled";
+
 interface DropdownProps {
-  onClickOutSide: any; //???
+  onClickOutSide: () => void;
   items: IEditItem[];
+  searchedItems?: INote[];
+  searchDropdown?: boolean;
+  selectCurrentNoteHandle: (arg: INote) => void;
+  changeViewHandle: (arg: any) => void;
 }
-const Dropdown: FC<DropdownProps> = ({ onClickOutSide, items }) => {
+
+const Dropdown: FC<DropdownProps> = ({
+  onClickOutSide,
+  items,
+  searchDropdown = false,
+  searchedItems,
+  selectCurrentNoteHandle,
+  changeViewHandle,
+}) => {
   const dropdownRef = useRef(null);
   const dispatch = useAppDispatch();
-  useOnClickOutside(dropdownRef, onClickOutSide, null);
+  const { currentIdNote } = useAppSelector((state) => state.notes);
+  useOnClickOutside(dropdownRef, onClickOutSide);
+
   const changeActionHandle = (action?: string) => {
     action && dispatch(notesAction(action));
+    onClickOutSide();
   };
+
   return (
     <DropdownWrapper ref={dropdownRef}>
-      {items.map((item) => (
-        <Item key={item.name} onClick={() => changeActionHandle(item.action)}>
-          <span>{item.name}</span>
-        </Item>
-      ))}
+      {!searchDropdown
+        ? items.map(
+            (item) =>
+              !(currentIdNote === null && item.action === "edit") && (
+                <Item
+                  key={item.name}
+                  onClick={() => {
+                    changeActionHandle(item.action);
+                    item.action === "create" && changeViewHandle(ViewType.LINE);
+                  }}
+                >
+                  <span>{item.name}</span>
+                </Item>
+              )
+          )
+        : searchedItems?.map((item) => (
+            <SearchItem
+              key={item.id}
+              onClick={() => {
+                selectCurrentNoteHandle(item);
+              }}
+            >
+              <span>{item.title}</span>
+            </SearchItem>
+          ))}
     </DropdownWrapper>
   );
 };
 
 export default Dropdown;
-
-export const DropdownWrapper = styled.div`
-  position: absolute;
-  width: 264px;
-  //height: 209px;
-  background: #212226;
-  border: 1px solid #575757;
-  border-radius: 8px;
-  top: 100%;
-  right: 0;
-  padding: 16px;
-`;
-export const Item = styled.div`
-  display: block;
-  span {
-    display: block;
-    font-size: 14px;
-    line-height: 17px;
-    color: #ffffff;
-    padding: 10px;
-  }
-  &:hover {
-    cursor: pointer;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
-  }
-`;

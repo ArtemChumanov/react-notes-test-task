@@ -2,31 +2,22 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { Navigate } from "react-router-dom";
 import styled from "styled-components";
-// @ts-ignore
-import LogoImage from "../../assets/icons/BT_Logo.svg";
-// @ts-ignore
-import Folder from "../../assets/icons/folder.svg";
-// @ts-ignore
-import AddFolderImage from "../../assets/icons/folder-add.svg";
 import Modal from "../../components/shared/Modal/Modal";
 import Sidebar from "./Sidebar/Sidebar";
 import NotesCreator from "./NotesCreator/NotesCreator";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
-import { setDeleteFolders } from "../../redux/notes/noteSlice";
 import { deleteFolder, getNotesByUserId } from "../../redux/notes/notesThunk";
 
 const Home = () => {
-  const { isAuth } = useAuth();
+  const { isAuth, uid } = useAuth();
   const [openModal, setOpenModal] = useState(false);
   const { currentIdFolder } = useAppSelector((state) => state.notes);
-
-  useEffect(() => {
-    dispatch(getNotesByUserId("asasdssdd"));
-  }, []);
-
   const dispatch = useAppDispatch();
+  useEffect(() => {
+    dispatch(getNotesByUserId(uid as string));
+  }, [dispatch, uid]);
+
   const confirmHandle = () => {
-    dispatch(setDeleteFolders(currentIdFolder));
     dispatch(deleteFolder(currentIdFolder));
     setOpenModal(false);
   };
@@ -35,13 +26,14 @@ const Home = () => {
     <HomeWrapper>
       {openModal && (
         <Modal
-          openModal={openModal}
-          setOpenModal={setOpenModal}
+          setOpenModal={() => setOpenModal(false)}
           onClick={confirmHandle}
         />
       )}
-      <Sidebar />
-      <NotesCreator setOpenModal={() => setOpenModal(true)} />
+      <WindowWrapper>
+        <Sidebar />
+        <NotesCreator setOpenModal={() => setOpenModal(true)} />
+      </WindowWrapper>
     </HomeWrapper>
   ) : (
     <Navigate to="/signIn" replace />
@@ -51,9 +43,16 @@ const Home = () => {
 export default Home;
 
 const HomeWrapper = styled.div`
-  width: 1200px;
-  height: 570px;
+  height: 100vh;
   display: flex;
   gap: 4px;
   background: black;
+  position: relative;
+  justify-content: center;
+  align-items: center;
+`;
+export const WindowWrapper = styled.div`
+  width: 1200px;
+  height: 570px;
+  display: flex;
 `;

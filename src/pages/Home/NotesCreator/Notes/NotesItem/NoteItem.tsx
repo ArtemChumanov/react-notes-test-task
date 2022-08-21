@@ -1,103 +1,67 @@
-import React, { FC } from "react";
+import React, { FC, useMemo } from "react";
 import Image from "../../../../../components/shared/Image/Image";
-
 // @ts-ignore
 import Lock from "../../../../../assets/icons/lock-color.svg";
-import styled from "styled-components";
 import {
   useAppDispatch,
   useAppSelector,
 } from "../../../../../hooks/reduxHooks";
 import moment from "moment";
 import { setSelectNoteId } from "../../../../../redux/notes/noteSlice";
+import { findIndexById } from "../../../../../utils/helpers";
+import { INote } from "../../../../../types/types";
+import Flex from "../../../../../components/shared/Flex/Flex";
+import {
+  ImageContainer,
+  Info,
+  NotesItemStyle,
+  ShortDescription,
+  Time,
+} from "./NoteItem.styled";
+
 interface NoteItemProps {
-  key: number;
-  note: any;
-  onSelectNote: any;
+  note: INote;
+  onSelectNote: (arg: INote) => void;
+  index: number;
 }
-const NoteItem: FC<NoteItemProps> = ({ key, note, onSelectNote }) => {
+const NoteItem: FC<NoteItemProps> = ({ note, onSelectNote, index }) => {
   const dispatch = useAppDispatch();
   const { folders, currentIdFolder, currentIdNote } = useAppSelector(
     (state) => state.notes
   );
-  // const currentFolderIndex = useMemo(
-  //   () => findIndexById(folders, currentIdFolder),
-  //   [currentIdFolder]
-  // );
-  // const indexNote = folders[currentFolderIndex].notesList.findIndex(
-  //   (elem) => elem.id === note.id
-  // );
+  const currentFolderIndex = useMemo(
+    () => findIndexById(folders, currentIdFolder),
+    [currentIdFolder, folders]
+  );
+
+  const indexNote = useMemo(
+    () => findIndexById(folders[currentFolderIndex].notesList, currentIdNote),
+    [currentFolderIndex, currentIdNote, folders]
+  );
 
   const onClickNoteHandle = () => {
     dispatch(setSelectNoteId(note.id));
     onSelectNote(note);
   };
-  const activeNote = currentIdNote === note.id;
+
+  const activeNote: boolean = index === indexNote;
 
   return (
-    <NotesItemStyle active={true} onClick={onClickNoteHandle}>
+    <NotesItemStyle active={activeNote} onClick={onClickNoteHandle}>
       <ImageContainer>
         {note.lock && <Image src={Lock} imageSize={[9, 11]} />}
       </ImageContainer>
       <Info>
         <h2>{note.title}</h2>
-        <ShortInfo>
+        <Flex styles={{ margin: [4, 0, 0, 0] }}>
           <Time>{moment(note.time).format("HH:mm")}</Time>
           <ShortDescription>
-            {note.text.length > 36 ? note.text.slice(0, 36) + "..." : note.text}
+            {note.text.length > 36 ? note.text.slice(0, 26) + "..." : note.text}
           </ShortDescription>
-        </ShortInfo>
+        </Flex>
       </Info>
     </NotesItemStyle>
   );
 };
 
 export default NoteItem;
-
-const NotesItemStyle = styled.div<{ active: boolean }>`
-  display: flex;
-  //background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  padding: 16px 32px 16px 10px;
-  margin-bottom: 1px;
-  background: ${({ active }) =>
-    active ? "rgba(0, 0, 0, 0.2)" : "transparent"};
-  &:hover {
-    cursor: pointer;
-    background: rgba(0, 0, 0, 0.2);
-  }
-`;
-const ImageContainer = styled.div`
-  margin-right: 10px;
-  width: 9px;
-`;
-const Info = styled.div`
-  flex-grow: 1;
-  //padding: 16px 0 16px;
-  h2 {
-    margin: 0;
-    font-weight: 700;
-    font-size: 16px;
-    line-height: 19px;
-
-    color: #ffffff;
-  }
-`;
-const ShortInfo = styled.div`
-  margin-top: 4px;
-`;
-const Time = styled.div`
-  display: inline-block;
-  margin-right: 8px;
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 17px;
-  color: #ffffff;
-`;
-const ShortDescription = styled.div`
-  display: inline-block;
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 17px;
-  color: rgba(255, 255, 255, 0.5);
-`;

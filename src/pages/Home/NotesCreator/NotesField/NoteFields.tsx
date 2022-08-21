@@ -1,5 +1,4 @@
-import React, { ChangeEvent, FC } from "react";
-import styled from "styled-components";
+import React, { ChangeEvent, FC, useEffect, useState } from "react";
 import Textarea from "../../../../components/shared/Textarea/Textarea";
 import { useAppDispatch, useAppSelector } from "../../../../hooks/reduxHooks";
 import Button from "../../../../components/shared/Button/Button";
@@ -8,115 +7,140 @@ import moment from "moment";
 import { updateFolder } from "../../../../redux/notes/notesThunk";
 import { mutableArray } from "../../../../utils/helpers";
 import { IFolder, INote } from "../../../../types/types";
+import Input from "../../../../components/shared/Input/Input";
+import PasswordBlocker from "../../../../components/PasswordBlocker/PasswordBlocker";
+import useActiveAction from "../../../../hooks/useActiveAction";
+import { DateInfo, NoteFieldsWrapper, NoteTitle } from "./NoteFields.styled";
 
 interface NoteFieldsProps {
   currentNote: INote;
   setCurrentNote: (arg: any) => void;
+  fullScreen?: boolean;
 }
-const NoteFields: FC<NoteFieldsProps> = ({ currentNote, setCurrentNote }) => {
+const NoteFields: FC<NoteFieldsProps> = ({
+  currentNote,
+  setCurrentNote,
+  fullScreen,
+}) => {
   const {
-    statusNotesCreating,
     statusNotesEditing,
     currentIdFolder,
     currentIdNote,
     folders,
+    statusPasswordForNoteCreating,
   } = useAppSelector((state) => state.notes);
-
+  const [accessToNote, setAccessToNote] = useState(true);
   const dispatch = useAppDispatch();
+  const { activeAction } = useActiveAction();
 
-  const saveNotesHandle = () => {
-    const notesInfo = {
-      ...currentNote,
-      id: currentNote.id === null ? 0 : currentNote.id + 1,
-      time: "12:56",
-    };
-    const action: string = statusNotesEditing ? "edit" : "create";
-    const mutableArrOfFolders = mutableArray(
-      folders,
-      notesInfo,
-      currentIdFolder,
-      currentIdNote,
-      action
-    );
-    setCurrentNote(notesInfo);
-    dispatch(
-      updateFolder({
-        folderId: currentIdFolder,
-        currentFolder: mutableArrOfFolders.updatedItem as IFolder,
-        folders: mutableArrOfFolders.updatedArray as IFolder[],
-      })
-    );
+  useEffect(() => {
+    !fullScreen && currentNote.lock && !statusNotesEditing
+      ? setAccessToNote(false)
+      : setAccessToNote(true);
+  }, [currentNote, statusNotesEditing, fullScreen]);
 
-    dispatch(toggleNoteCreating());
+  const saveNotesHandle = ({ password, lock }: INote) => {
+    if (currentNote.title.length > 0) {
+      const action: string =
+        statusNotesEditing || statusPasswordForNoteCreating ? "edit" : "create";
+      const notesInfo = {
+        ...currentNote,
+        id:
+          currentNote.id === null
+            ? 1
+            : action === "edit"
+            ? currentNote.id
+            : currentNote.id + 1,
+        time: moment().toString(),
+        password:
+          password && password?.length > 0 ? password : currentNote.password,
+        lock: lock || currentNote.lock,
+      };
+
+      const mutableArrOfFolders = mutableArray(
+        folders,
+        notesInfo,
+        currentIdFolder,
+        currentIdNote,
+        action
+      );
+      setCurrentNote(notesInfo);
+      dispatch(
+        updateFolder({
+          folderId: currentIdFolder,
+          currentFolder: mutableArrOfFolders.updatedItem as IFolder,
+          folders: mutableArrOfFolders.updatedArray as IFolder[],
+        })
+      );
+
+      dispatch(toggleNoteCreating());
+    }
   };
   const onChangeName = ({ target }: ChangeEvent<HTMLInputElement>) =>
     setCurrentNote((props: INote) => ({
       ...props,
       title: target.value,
     }));
+
   const onChangeText = ({ target }: ChangeEvent<HTMLInputElement>) =>
     setCurrentNote((props: INote) => ({
       ...props,
       text: target.value,
     }));
 
-  const activeMode: boolean = statusNotesCreating || statusNotesEditing;
-
   return (
-    <NoteFieldsWrapper active={activeMode}>
-      <DateInfo>
-        <span>
-          Created: {moment(currentNote.time).format("DD MMMM YYYY, HH:mm")}
-        </span>
-      </DateInfo>
-      {activeMode ? (
-        <input onChange={onChangeName} />
-      ) : (
-        <NoteTitle>{currentNote.title}</NoteTitle>
-      )}
-
-      <Textarea
-        value={currentNote.text}
-        onChange={onChangeText}
-        disabled={!activeMode}
-      />
-      {activeMode && (
-        <Button
-          imageButton={false}
-          label={"Save"}
-          styles={{ background: "#313866", padding: [10, 20, 10, 20] }}
-          onClick={saveNotesHandle}
+    <NoteFieldsWrapper active={activeAction} width={fullScreen ? 949 : 540}>
+      {!accessToNote || statusPasswordForNoteCreating ? (
+        <PasswordBlocker
+          password={currentNote.password}
+          setAccess={setAccessToNote}
+          statusPasswordForNoteCreating={statusPasswordForNoteCreating}
+          saveCreatePassword={saveNotesHandle}
         />
+      ) : (
+        <>
+          <DateInfo>
+            {currentNote.time.length !== 0 && (
+              <span>
+                Created:{" "}
+                {moment(currentNote.time).format("DD MMMM YYYY, HH:mm")}
+              </span>
+            )}
+          </DateInfo>
+          {activeAction ? (
+            <Input
+              labelVisible={false}
+              value={currentNote.title}
+              type={"text"}
+              name={"input"}
+              onChange={onChangeName}
+              styles={{ padding: [0, 0, 0, 15], margin: [10, 0, 0, 0] }}
+            />
+          ) : (
+            <NoteTitle>{currentNote.title}</NoteTitle>
+          )}
+
+          <Textarea
+            value={currentNote.text}
+            onChange={onChangeText}
+            disabled={!activeAction}
+          />
+          {activeAction && (
+            <Button
+              imageButton={false}
+              label={"Save"}
+              styles={{
+                background: "#313866",
+                padding: [10, 20, 10, 20],
+                margin: [0, 0, 10, 0],
+              }}
+              onClick={saveNotesHandle}
+            />
+          )}
+        </>
       )}
     </NoteFieldsWrapper>
   );
 };
 
 export default NoteFields;
-
-export const NoteFieldsWrapper = styled.div<{ active: boolean }>`
-  width: 540px; //100%;;
-  background: linear-gradient(180deg, #212226 13.8%, #020202 114.67%), #212226;
-  padding: 16px 14px 14px 32px;
-  //overflow: auto;
-  border: ${({ active }) => (active ? "1px solid #dfa549" : "none")};
-  ////scroll
-`;
-export const DateInfo = styled.div`
-  width: 100%;
-  text-align: center;
-  span {
-    display: inline-block;
-    color: rgba(255, 255, 255, 0.5);
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 17px;
-  }
-`;
-const NoteTitle = styled.h2`
-  margin: 0 0 8px;
-  font-weight: 700;
-  font-size: 16px;
-  line-height: 19px;
-  color: #ffffff;
-`;

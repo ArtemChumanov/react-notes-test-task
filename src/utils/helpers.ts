@@ -12,7 +12,6 @@ export const mutableArray = (
   action: string
 ) => {
   const findIndexChangeArray = array.findIndex((i: any) => i.id === currentId);
-  console.log(array[findIndexChangeArray]?.notesList);
   let newField = {};
   if (action === "edit") {
     const findIndexNestArray = array[findIndexChangeArray].notesList.findIndex(
@@ -36,7 +35,6 @@ export const mutableArray = (
         ...array[findIndexChangeArray].notesList,
         {
           ...fields,
-          time: "1",
           id: array[findIndexChangeArray].notesList.length + 1,
         },
       ],

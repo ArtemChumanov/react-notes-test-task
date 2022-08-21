@@ -1,18 +1,12 @@
-import React, { useEffect } from "react";
+import { RefObject, useEffect } from "react";
 
-interface useOnClickOutsideProps {}
-export const useOnClickOutside = (ref: any, handler: any, portalRef: any) => {
-  console.log(1112);
+export const useOnClickOutside = (
+  ref: RefObject<any>,
+  handler: (e: any) => void
+) => {
   useEffect(() => {
     const listener = (event: any) => {
       if (!ref.current || ref.current.contains(event.target)) {
-        return;
-      }
-
-      if (
-        portalRef !== undefined &&
-        (!portalRef?.current || portalRef?.current.contains(event.target))
-      ) {
         return;
       }
       handler(event);
@@ -23,5 +17,5 @@ export const useOnClickOutside = (ref: any, handler: any, portalRef: any) => {
       document.removeEventListener("mousedown", listener);
       document.removeEventListener("touchstart", listener);
     };
-  }, [ref, handler, portalRef]);
+  }, [ref, handler]);
 };

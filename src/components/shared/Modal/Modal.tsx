@@ -5,15 +5,16 @@ import Image from "../Image/Image";
 // @ts-ignore
 import Trash from "../../../assets/icons/trash.svg";
 import Button from "../Button/Button";
+import { useOnClickOutside } from "../../../hooks/useOnClickOutside";
 
 interface ModalProps {
-  openModal: boolean;
   setOpenModal: (arg: any) => void;
   onClick: () => void;
 }
-const Modal: FC<ModalProps> = ({ openModal, setOpenModal, onClick }) => {
+
+const Modal: FC<ModalProps> = ({ setOpenModal, onClick }) => {
   const modalRef = useRef(null);
-  //useOnClickOutside(modalRef, onClick, null);
+  useOnClickOutside(modalRef, setOpenModal);
 
   return (
     <ModalWrapper>

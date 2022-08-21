@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, useMemo, useRef, useState } from "react";
 // @ts-ignore
 import LogoImage from "../../../assets/icons/BT_Logo.svg";
 // @ts-ignore
@@ -6,27 +6,58 @@ import Folder from "../../../assets/icons/folder.svg";
 import Image from "../../../components/shared/Image/Image";
 // @ts-ignore
 import AddFolderImage from "../../../assets/icons/folder-add.svg";
-import styled from "styled-components";
 import { useAppDispatch, useAppSelector } from "../../../hooks/reduxHooks";
-import { setCurrentIdFolder } from "../../../redux/notes/noteSlice";
+import {
+  setCurrentIdFolder,
+  setSelectNoteId,
+} from "../../../redux/notes/noteSlice";
 import Button from "../../../components/shared/Button/Button";
 import { addFolder } from "../../../redux/notes/notesThunk";
 import { findIndexById } from "../../../utils/helpers";
+import Input from "../../../components/shared/Input/Input";
+import Flex from "../../../components/shared/Flex/Flex";
+import { _darkBlue } from "../../../utils/constants";
+import { useAuth } from "../../../hooks/useAuth";
+import { useOnClickOutside } from "../../../hooks/useOnClickOutside";
+import { IFolder } from "../../../types/types";
+import useActiveAction from "../../../hooks/useActiveAction";
+import {
+  CountsNotes,
+  CreateFolder,
+  CreatingFolderWrapper,
+  FolderImage,
+  FolderList,
+  FolderStyle,
+  FoldersWrapper,
+  Label,
+  Logo,
+  NewFolderTitle,
+} from "./Sidebar.styled";
 
 const Sidebar = () => {
+  const sideBarActionRef = useRef(null);
   const dispatch = useAppDispatch();
+  const { uid } = useAuth();
+  const { activeAction } = useActiveAction();
   const { folders, currentIdFolder } = useAppSelector((state) => state.notes);
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [folderNameValue, setFolderNameValue] = useState("");
   const [activeFolder, setActiveFolder] = useState<number | null>(
     findIndexById(folders, currentIdFolder)
   );
-  const selectFolderHandle = (index: number, item: any) => {
+  useOnClickOutside(sideBarActionRef, () => setCreatingFolder(false));
+
+  useMemo(() => {
+    setActiveFolder(findIndexById(folders, currentIdFolder));
+  }, [currentIdFolder, folders]);
+
+  const selectFolderHandle = (index: number, item: IFolder) => {
     dispatch(setCurrentIdFolder(item.id));
+    dispatch(setSelectNoteId(null));
     setActiveFolder(index);
   };
 
-  const toggleCreatingHandle = () => setCreatingFolder(true);
+  const toggleCreatingHandle = () => !activeAction && setCreatingFolder(true);
 
   const changeInputHandle = ({ target }: ChangeEvent<HTMLInputElement>) =>
     setFolderNameValue(target.value);
@@ -38,6 +69,7 @@ const Sidebar = () => {
         lock: false,
         notesList: [],
         id: folders.length + 1,
+        userId: uid as string,
       })
     );
     setFolderNameValue("");
@@ -51,7 +83,7 @@ const Sidebar = () => {
           <FolderStyle
             key={folder.id}
             active={index === activeFolder}
-            onClick={() => selectFolderHandle(index, folder)}
+            onClick={() => !activeAction && selectFolderHandle(index, folder)}
           >
             <div>
               <FolderImage src={Folder} />
@@ -61,70 +93,39 @@ const Sidebar = () => {
           </FolderStyle>
         ))}
       </FolderList>
-      {creatingFolder ? (
-        <div>
-          <input value={folderNameValue} onChange={changeInputHandle} />
-          <Button imageButton={false} label={"ok"} onClick={addFolderHandle} />
-        </div>
-      ) : (
-        <CreateFolder onClick={toggleCreatingHandle}>
-          <Image src={AddFolderImage} imageSize={[20, 18]} />
-          <NewFolderTitle>New Folder</NewFolderTitle>
-        </CreateFolder>
-      )}
+      <CreatingFolderWrapper ref={sideBarActionRef}>
+        {creatingFolder ? (
+          <Flex alignItems={"stretch"}>
+            <Input
+              labelVisible={false}
+              name={"name"}
+              type={"text"}
+              label={folderNameValue.length === 0 ? "Enter name folder" : ""}
+              value={folderNameValue}
+              onChange={changeInputHandle}
+              styles={{ padding: [0, 0, 0, 15], width: 120 }}
+            />
+            <Button
+              imageButton={false}
+              label={"ok"}
+              onClick={addFolderHandle}
+              styles={{ padding: [0, 10, 0, 10], background: _darkBlue }}
+            />
+          </Flex>
+        ) : (
+          // додати нову папку
+          <CreateFolder onClick={toggleCreatingHandle}>
+            <Image
+              src={AddFolderImage}
+              imageSize={[20, 18]}
+              styles={{ margin: [0, 10, 0, 0] }}
+            />
+            <NewFolderTitle>New Folder</NewFolderTitle>
+          </CreateFolder>
+        )}
+      </CreatingFolderWrapper>
     </FoldersWrapper>
   );
 };
 
 export default Sidebar;
-
-const FoldersWrapper = styled.div`
-  width: 273px;
-  background: linear-gradient(155.72deg, #504099 17.71%, #4b4af9 119.51%);
-  border-radius: 30px 0 0 30px;
-  padding: 25px 16px 19px;
-`;
-export const Logo = styled.img`
-  width: 141px;
-  height: 19px;
-`;
-export const FolderList = styled.div`
-  margin-top: 53px;
-`;
-export const FolderStyle = styled.div<{ active: boolean }>`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: ${({ active }) =>
-    active ? "rgba(255, 255, 255, 0.2)" : "transparent"};
-  padding: 11px 8px 11px 10px;
-  border-radius: 8px;
-  margin-bottom: 2px;
-  cursor: pointer;
-  div {
-    display: flex;
-    align-items: center;
-  }
-`;
-export const FolderImage = styled.img`
-  width: 20px;
-  height: 18px;
-  margin-right: 10px;
-`;
-export const Label = styled.label`
-  color: white;
-`;
-export const CountsNotes = styled.span`
-  display: inline-block;
-  color: rgba(255, 255, 255, 0.3);
-`;
-
-export const CreateFolder = styled.div`
-  display: flex;
-  align-items: center;
-`;
-export const NewFolderTitle = styled.span`
-  font-size: 12px;
-  line-height: 15px;
-  color: rgba(255, 255, 255, 0.5);
-`;

@@ -1,17 +1,15 @@
-import {Route, Routes} from "react-router-dom";
-import SignIn from "../pages/SignIn/SignIn";
-import SignUp from "../pages/SignUp/SignUp";
+import { Route, Routes } from "react-router-dom";
 import Home from "../pages/Home/Home";
+import AuthPage from "../pages/AuthPage/AuthPage";
 
 const Routers = () => {
-    return (
-        <Routes>
-            <Route path="/">
-                <Route index element={<Home />} />
-                <Route path={"signIn"} element={<SignIn/>} />
-                <Route path={"signUp"} element={<SignUp/>}/>
-            </Route>
-        </Routes>
-    );
+  return (
+    <Routes>
+      <Route path="/">
+        <Route index element={<Home />} />
+        <Route path={"signIn"} element={<AuthPage />} />
+      </Route>
+    </Routes>
+  );
 };
-export  default Routers
+export default Routers;
